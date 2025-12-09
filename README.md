@@ -25,7 +25,11 @@ Here is what the model found for the year 2024:
 | **Total Revenue** | €61,006,897.12 | **€82,256,946.35** |
 | **Improvement** | - | **€21,250,049.23** |
 | **Hydrogen Made** | 0 tons | **6,629.44 tons** |
-| **Energy Saved** | 0 GWh | **61.6 GWh** (Saved from waste) |
+| **Grid Energy Recovered** | 0 GWh | **44.1 GWh** (Saved from waste) |
+| **Curtailment Recovery** | 0% | **4.88%** of total potential |
+| **Extra H2 from Waste** | 0 tons | **845 tons** (Worth ~€5.6M) |
+
+> **Impact:** The project successfully mitigates the "Einspeisemanagement" risk by converting **4.88%** of the wind farm's theoretical output—which would otherwise be curtailed—into valuable green hydrogen.
 
 > **Bottom Line:** Adding hydrogen creates a **4.2-year payback period** and makes the wind farm much more profitable.
 
