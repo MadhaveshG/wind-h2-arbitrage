@@ -1,7 +1,7 @@
 # Wind-to-Hydrogen Arbitrage Model 
 
 ## Project Overview
-This project models the techno-economic viability of co-locating a **50 MW PEM Electrolyzer** with the **300 MW Bürgerwindpark Reußenköge** onshore wind farm in Northern Germany.
+This project models the techno-economic viability of co-locating a **50 MW PEM Electrolyzer** with the **210 MW Bürgerwindpark Reußenköge** onshore wind farm in Northern Germany.
 
 Using a Python-based dispatch model, the system performs hourly arbitrage between:
 1.  **Selling electricity to the grid** (Day-Ahead Market).
@@ -19,7 +19,7 @@ Using a Python-based dispatch model, the system performs hourly arbitrage betwee
 ## Data Sources 
 * **Wind Data:** ERA5 Reanalysis (Copernicus CDS) for location 54.60°N, 8.90°E.
 * **Price Data:** ENTSO-E Day-Ahead Prices for DE-LU (2024).
-* **Turbine:** Vestas V150-5.6 MW Power Curve.
+* **Turbine:** Vestas V112-3.45 MW Power Curve.
 * **Electrolyzer:** Siemens Silyzer 300 specs (52.2 kWh/kg efficiency).
 
 ## How to Run
