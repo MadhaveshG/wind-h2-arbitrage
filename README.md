@@ -13,7 +13,6 @@ Using a Python-based dispatch model, the system performs hourly arbitrage betwee
 * **LCOH:** €5.06 / kg (Competitive with market rates).
 * **Conclusion:** The arbitrage strategy successfully mitigates the risk of negative prices while creating a new revenue stream.
 
-![Payback Heatmap](images/payback_heatmap.png)
 *(Sensitivity Analysis of Payback Period vs. H2 Price and CAPEX)*
 
 ## Data Sources 
