@@ -22,8 +22,8 @@ Here is what the model found for the year 2024:
 
 | Metric | Wind Farm Only | Wind + Hydrogen (My Model) |
 | :--- | :--- | :--- |
-| **Total Revenue** | €[Insert 210MW Value] | **€61,006,897.12** |
-| **Improvement** | - | **🟢 +[X]% Extra Profit** |
+| **Total Revenue** | €61,006,897.12 | **€82,256,946.35** |
+| **Improvement** | - | **€21,250,049.23** |
 | **Hydrogen Made** | 0 tons | **6,629.44 tons** |
 | **Energy Saved** | 0 GWh | **61.6 GWh** (Saved from waste) |
 
