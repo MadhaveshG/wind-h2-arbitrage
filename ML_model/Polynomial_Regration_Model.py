@@ -1,89 +1,105 @@
+# Link to wind turbine data source:
+    # https://www.nsenergybusiness.com/projects/reusenkoge-wind-farm-expansion/?cf-view
+    
+# Power Curve Data Source:
+    # https://en.wind-turbine-models.com/turbines/693-vestas-v112-3.3
+
 import numpy as np
 import pandas as pd
+from scipy.interpolate import interp1d
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
-import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 
 class WindFarmModel:
     """
-    Compute hourly wind farm power using physics formula and fit polynomial regression.
+    Compute hourly wind farm power using a POWER CURVE instead of physics formula.
     """
 
-    def __init__(self, df: pd.DataFrame, n_turbines: int = 51, total_capacity: float = 175,
-                 rotor_radius: float = 61, Cp: float = 0.45, air_density: float = 1.225):
+    def __init__(self, df: pd.DataFrame, 
+                wind_speeds: np.ndarray,
+                power_kW: np.ndarray,
+                n_turbines: int = 51):
+            
         self.df = df.copy()
         self.n_turbines = n_turbines
-        self.total_capacity = total_capacity
-        self.rotor_radius = rotor_radius
-        self.Cp = Cp
-        self.rho = air_density
-        self.model = None
-        self.X_poly = None
-        self.y_pred = None
 
-    def compute_hourly_power(self, cut_in: float = 3, cut_out: float = 25):
-        """Compute farm power using full physics formula."""
-        A = np.pi * self.rotor_radius**2  # m²
-        # Power per turbine in MW
-        self.df['turbine_power_MW'] = 0.5 * self.rho * A * self.Cp * self.df['wind_speed']**3 / 1e6
+        # Store power curve arrays from user
+        self.wind_speeds = np.array(wind_speeds)
+        self.power_kW = np.array(power_kW)
 
-        # Apply cut-in / cut-out
-        self.df.loc[self.df['wind_speed'] < cut_in, 'turbine_power_MW'] = 0
-        self.df.loc[self.df['wind_speed'] > cut_out, 'turbine_power_MW'] = 0
+        # Create interpolator
+        self.power_interp = interp1d(
+        self.wind_speeds,
+        self.power_kW,
+        kind="linear",
+        bounds_error=False,
+        fill_value=0
+        )
+
+    # -------------------------------------------------------
+    # COMPUTE HOURLY POWER USING POWER CURVE
+    # -------------------------------------------------------
+    def compute_hourly_power(self):
+        """Compute farm power using turbine power curve."""
+        
+        # Interpolate turbine power (kW)
+        self.df["turbine_power_kW"] = self.power_interp(self.df["wind_speed"])
+
+        # Convert to MW
+        self.df["turbine_power_MW"] = self.df["turbine_power_kW"] / 1000.0
 
         # Total farm power
-        self.df['farm_power_MW'] = self.df['turbine_power_MW'] * self.n_turbines
-        self.df['farm_power_MW'] = self.df['farm_power_MW'].clip(upper=self.total_capacity)
+        self.df["farm_power_MW"] = self.df["turbine_power_MW"] * self.n_turbines
+
         return self.df
 
+    # -------------------------------------------------------
+    # MONTHLY AGGREGATION
+    # -------------------------------------------------------
     def aggregate_monthly(self):
-        """Aggregate hourly farm power to monthly totals."""
-        self.df['month'] = self.df['valid_time'].dt.month
-        monthly_power = self.df.groupby('month')['farm_power_MW'].sum().reset_index()
+        self.df["month"] = self.df["valid_time"].dt.month
+        monthly_power = self.df.groupby("month")["farm_power_MW"].sum().reset_index()
         self.monthly_power = monthly_power
         return monthly_power
 
+    # -------------------------------------------------------
+    # POLYNOMIAL TREND
+    # -------------------------------------------------------
     def fit_polynomial_trend(self, degree: int = 3):
-        """Fit polynomial regression to monthly production."""
-        X = self.monthly_power['month'].values.reshape(-1,1)
-        y = self.monthly_power['farm_power_MW'].values
+        X = self.monthly_power["month"].values.reshape(-1, 1)
+        y = self.monthly_power["farm_power_MW"].values
+
         poly = PolynomialFeatures(degree=degree)
-        self.X_poly = poly.fit_transform(X)
-        self.model = LinearRegression()
-        self.model.fit(self.X_poly, y)
-        self.y_pred = self.model.predict(self.X_poly)
+        X_poly = poly.fit_transform(X)
+
+        model = LinearRegression()
+        model.fit(X_poly, y)
+
+        self.y_pred = model.predict(X_poly)
         return self.y_pred
 
-    
-
+    # -------------------------------------------------------
+    # PLOT HOURLY PRODUCTION
+    # -------------------------------------------------------
     def plot_hourly_production_html(self, filename: str):
-        """
-        Plot hourly farm power with polynomial trend and save as interactive HTML.
-        """
-        # Hourly data
-        time = self.df['valid_time']
-        farm_power = self.df['farm_power_MW']
+        time = self.df["valid_time"]
+        farm_power = self.df["farm_power_MW"]
 
-        # Polynomial trend over months (for display, repeated hourly)
-        months = self.df['month'].values.reshape(-1,1)
-        from sklearn.preprocessing import PolynomialFeatures
-        from sklearn.linear_model import LinearRegression
-
+        # Fit polynomial trend on hourly data
+        months = self.df["month"].values.reshape(-1, 1)
         poly = PolynomialFeatures(degree=3)
         X_poly = poly.fit_transform(months)
         model = LinearRegression()
         model.fit(X_poly, farm_power)
         trend_power = model.predict(X_poly)
 
-        # Create Plotly figure
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=time, y=farm_power,
-            mode='lines+markers',
+            mode='lines',
             name='Hourly Farm Power [MW]',
-            line=dict(color='skyblue'),
-            marker=dict(size=4)
+            line=dict(color='skyblue')
         ))
         fig.add_trace(go.Scatter(
             x=time, y=trend_power,
@@ -92,17 +108,12 @@ class WindFarmModel:
             line=dict(color='red', width=2)
         ))
 
-        # Layout
         fig.update_layout(
-            title=f'Hourly Wind Farm Power Production (Total Capacity {self.total_capacity} MW)',
+            title=f'Hourly Wind Farm Power Production Capacity MW',
             xaxis=dict(title='Time', rangeslider=dict(visible=True)),
             yaxis=dict(title='Power [MW]'),
-            hovermode='x unified',
-            template='plotly_white',
-            legend=dict(x=1, y=1, xanchor='right', yanchor='top')
+            template='plotly_white'
         )
 
-        # Save interactive HTML
         fig.write_html(filename)
-        print(f'Interactive plot saved to {filename}')
-
+        print(f"Interactive plot saved to {filename}")

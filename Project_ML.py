@@ -35,7 +35,6 @@ ds = xr.open_dataset(Wind_Data) # Load the NetCDF file using xarray
 ds['wind_speed'] = np.sqrt(ds['u100']**2 + ds['v100']**2)
 ds = ds.mean(dim=['latitude', 'longitude'])  # Average over spatial dimensions
 df = ds[['wind_speed']].to_dataframe().reset_index()
-print(df.head())
 df = df.dropna()
 df['hour'] = df['valid_time'].dt.hour
 df['month'] = df['valid_time'].dt.month
@@ -48,8 +47,17 @@ df.to_csv(processed_data_path, index=False)
 Step 2: Compute farm power & aggregate monthly
 """
 
-wind_farm = WindFarmModel(df, n_turbines=51, total_capacity=175,
-                          rotor_radius=61, Cp=0.45, air_density=1.225)
+wind_speeds = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16,17, 18, 19, 20, 21, 22, 23, 24, 25])  # m/s
+power_kW =    np.array([0, 0, 22, 134, 302, 552, 906, 1370, 1950, 2586, 3071, 3266, 3298, 3300, 3300,3300,3300,3300,3300,3300,3300,3300,3300,3300,0])  # kW
+
+
+wind_farm = WindFarmModel(
+    df=df,
+    wind_speeds=wind_speeds,
+    power_kW=power_kW,
+    n_turbines=51
+)
+
 wind_farm.compute_hourly_power(),
 wind_farm.aggregate_monthly()
 
