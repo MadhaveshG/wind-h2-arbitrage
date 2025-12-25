@@ -65,6 +65,10 @@ wind_farm.aggregate_monthly()
 Step 3: Fit polynomial regression
 """
 wind_farm.fit_polynomial_trend(degree=3)
+wind_farm.fit_linear_regression()
+
+results = wind_farm.evaluate_models() 
+print(results)
 
 """
 Step 4: Plot monthly production with trend

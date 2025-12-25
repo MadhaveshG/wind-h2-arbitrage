@@ -10,6 +10,7 @@ from scipy.interpolate import interp1d
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
 import plotly.graph_objects as go
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
 class WindFarmModel:
     """
@@ -78,6 +79,55 @@ class WindFarmModel:
 
         self.y_pred = model.predict(X_poly)
         return self.y_pred
+    
+    # ------------------------------------------------------
+    # Linear Regression Prediction
+    # -----------------------------------------------------
+
+    def fit_linear_regression(self):
+        """Fit simple linear regression to monthly production."""
+        X = self.monthly_power["month"].values.reshape(-1, 1)
+        y = self.monthly_power["farm_power_MW"].values
+
+        model = LinearRegression()
+        model.fit(X, y)
+
+        self.linear_model = model
+        self.linear_pred = model.predict(X)
+
+        return self.linear_pred
+    
+    # -------------------------------------------------------
+    # EVALUATE MODELS
+    # -------------------------------------------------------
+
+    def evaluate_models(self):
+        """Compare Linear vs Polynomial regression using standard metrics."""
+
+        y_true = self.monthly_power["farm_power_MW"].values
+
+        # Polynomial predictions
+        y_poly = self.y_pred
+
+        # Linear predictions
+        y_lin = self.linear_pred
+
+        # Compute metrics
+        results = {
+            "Polynomial Regression": {
+                "R2": r2_score(y_true, y_poly),
+                "RMSE": np.sqrt(mean_squared_error(y_true, y_poly)),
+                "MAE": mean_absolute_error(y_true, y_poly)
+            },
+            "Linear Regression": {
+                "R2": r2_score(y_true, y_lin),
+                "RMSE": np.sqrt(mean_squared_error(y_true, y_lin)),
+                "MAE": mean_absolute_error(y_true, y_lin)
+            }
+        }
+
+        return results
+
 
     # -------------------------------------------------------
     # PLOT HOURLY PRODUCTION
@@ -94,6 +144,11 @@ class WindFarmModel:
         model.fit(X_poly, farm_power)
         trend_power = model.predict(X_poly)
 
+        # Linear regression trend on hourly data 
+        lin_model = LinearRegression() 
+        lin_model.fit(months, farm_power) 
+        trend_linear = lin_model.predict(months)
+
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=time, y=farm_power,
@@ -108,8 +163,14 @@ class WindFarmModel:
             line=dict(color='red', width=2)
         ))
 
+        # Linear regression trend 
+        fig.add_trace(go.Scatter( x=time, y=trend_linear, 
+                                 mode='lines', name='Linear Regression Trend', 
+                                 line=dict(color='green', width=2, dash='dash') ))
+
+
         fig.update_layout(
-            title=f'Hourly Wind Farm Power Production Capacity MW',
+            title=f'Hourly Wind Farm Power Production with ML',
             xaxis=dict(title='Time', rangeslider=dict(visible=True)),
             yaxis=dict(title='Power [MW]'),
             template='plotly_white'
