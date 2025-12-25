@@ -37,6 +37,7 @@ ds = ds.mean(dim=['latitude', 'longitude'])  # Average over spatial dimensions
 df = ds[['wind_speed']].to_dataframe().reset_index()
 df = df.dropna()
 df['hour'] = df['valid_time'].dt.hour
+df['day'] = df['valid_time'].dt.date
 df['month'] = df['valid_time'].dt.month
 
 # Save the CSV File of Valid time Vs Wind Speed at 100m height
@@ -60,12 +61,16 @@ wind_farm = WindFarmModel(
 
 wind_farm.compute_hourly_power(),
 wind_farm.aggregate_monthly()
+wind_farm.aggregate_daily()
 
 """
 Step 3: Fit polynomial regression
 """
 wind_farm.fit_polynomial_trend(degree=3)
 wind_farm.fit_linear_regression()
+
+# wind_farm.fit_polynomial_trend_daily()
+# wind_farm.fit_linear_regression_daily()
 
 results = wind_farm.evaluate_models() 
 print(results)
@@ -77,5 +82,9 @@ Step 4: Plot monthly production with trend
 wind_farm.plot_hourly_production_html(
     filename=os.path.join(BASE_DIR, "DATA", "Wind_data_ERA5", "hourly_power_plot.html")
 )
+
+# wind_farm.plot_daily_production(
+#     filename=os.path.join(BASE_DIR, "DATA", "Wind_data_ERA5", "daily_power_plot.html")
+# )
 
 

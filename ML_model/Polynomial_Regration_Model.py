@@ -54,6 +54,13 @@ class WindFarmModel:
         self.df["farm_power_MW"] = self.df["turbine_power_MW"] * self.n_turbines
 
         return self.df
+    
+    def aggregate_daily(self):
+        self.df["day"] = self.df["valid_time"].dt.date
+        daily_power = self.df.groupby("day")["farm_power_MW"].sum().reset_index()
+        self.daily_power = daily_power
+        return daily_power
+
 
     # -------------------------------------------------------
     # MONTHLY AGGREGATION
@@ -80,6 +87,19 @@ class WindFarmModel:
         self.y_pred = model.predict(X_poly)
         return self.y_pred
     
+    def fit_polynomial_trend_daily(self, degree=3):
+        X = np.arange(len(self.daily_power)).reshape(-1, 1)
+        y = self.daily_power["farm_power_MW"].values
+
+        poly = PolynomialFeatures(degree=degree)
+        X_poly = poly.fit_transform(X)
+
+        model = LinearRegression()
+        model.fit(X_poly, y)
+
+        self.daily_poly_pred = model.predict(X_poly)
+        return self.daily_poly_pred
+
     # ------------------------------------------------------
     # Linear Regression Prediction
     # -----------------------------------------------------
@@ -97,6 +117,17 @@ class WindFarmModel:
 
         return self.linear_pred
     
+    def fit_linear_regression_daily(self):
+        X = np.arange(len(self.daily_power)).reshape(-1, 1)
+        y = self.daily_power["farm_power_MW"].values
+
+        model = LinearRegression()
+        model.fit(X, y)
+
+        self.daily_lin_pred = model.predict(X)
+        return self.daily_lin_pred
+
+    
     # -------------------------------------------------------
     # EVALUATE MODELS
     # -------------------------------------------------------
@@ -105,12 +136,15 @@ class WindFarmModel:
         """Compare Linear vs Polynomial regression using standard metrics."""
 
         y_true = self.monthly_power["farm_power_MW"].values
+        # y_true = self.daily_power["farm_power_MW"].values
 
         # Polynomial predictions
         y_poly = self.y_pred
+        # y_poly = self.daily_poly_pred
 
         # Linear predictions
         y_lin = self.linear_pred
+        # y_lin = self.daily_lin_pred
 
         # Compute metrics
         results = {
@@ -178,3 +212,41 @@ class WindFarmModel:
 
         fig.write_html(filename)
         print(f"Interactive plot saved to {filename}")
+
+    # def plot_daily_production(self, filename):
+    #     days = self.daily_power["day"]
+    #     actual = self.daily_power["farm_power_MW"]
+
+    #     fig = go.Figure()
+
+    #     fig.add_trace(go.Scatter(
+    #         x=days, y=actual,
+    #         mode="lines",
+    #         name="Daily Power [MW]",
+    #         line=dict(color="blue")
+    #     ))
+
+    #     fig.add_trace(go.Scatter(
+    #         x=days, y=self.daily_poly_pred,
+    #         mode="lines",
+    #         name="Polynomial Trend",
+    #         line=dict(color="red")
+    #     ))
+
+    #     fig.add_trace(go.Scatter(
+    #         x=days, y=self.daily_lin_pred,
+    #         mode="lines",
+    #         name="Linear Trend",
+    #         line=dict(color="green", dash="dash")
+    #     ))
+
+    #     fig.update_layout(
+    #         title="Daily Wind Farm Power Production with ML Trends",
+    #         xaxis_title="Day",
+    #         yaxis_title="Power [MW]",
+    #         template="plotly_white"
+    #     )
+
+    #     fig.write_html(filename)
+    #     print(f"Daily plot saved to {filename}")
+
