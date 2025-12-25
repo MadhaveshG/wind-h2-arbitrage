@@ -1,19 +1,20 @@
+"""
+Code for Logistic Regression Model to decide when to STORE or SELL energy
+Output: There two main outputs:
+    1. Value 0 : SELL energy
+    2. Value 1 : STORE energy 
+"""
+
 import pandas as pd
 import numpy as np
+import plotly.graph_objects as go
+
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
-import plotly.graph_objects as go
 
 
 class LogisticArbitrageModel:
-    """
-    Logistic Regression for Energy Arbitrage:
-
-    Decision:
-    SELL --> 0
-    STORE --> 1 (if price < 0)
-    """
 
     def __init__(self, power_df: pd.DataFrame, price_df: pd.DataFrame):
         self.power_df = power_df.copy()
@@ -24,6 +25,7 @@ class LogisticArbitrageModel:
     # --------------------------------------------------
     # STEP 1: CREATE SEASONAL DEMAND INDEX
     # --------------------------------------------------
+
     @staticmethod
     def seasonal_demand_factor(month):
         if month in [12, 1, 2]:      # Winter
@@ -38,6 +40,7 @@ class LogisticArbitrageModel:
     # --------------------------------------------------
     # STEP 2: PREPARE DATASET of POWER + PRICE
     # --------------------------------------------------
+
     def prepare_dataset(self):
         # Convert wind timestamps to UTC
         self.power_df["valid_time"] = pd.to_datetime(self.power_df["valid_time"], utc=True)
@@ -93,9 +96,6 @@ class LogisticArbitrageModel:
         # Store hourly data
         self.hourly_data = df
         return df
-    
-    
-
 
     # --------------------------------------------------
     # STEP 3: TRAIN LOGISTIC REGRESSION
@@ -132,6 +132,7 @@ class LogisticArbitrageModel:
     # --------------------------------------------------
     # STEP 4: COEFFICIENT INTERPRETATION
     # --------------------------------------------------
+    
     def print_coefficients(self):
         if self.model is None:
             print("Model not trained yet.")
@@ -192,4 +193,33 @@ class LogisticArbitrageModel:
         })
         store_days.to_csv(days_file, index=False)
         print(f"Saved STORE days → {days_file}")
+
+    # --------------------------------------------------
+    # STEP 7: SAVE FINAL COMBINED CSV (DATE, TIME, POWER, PRICE, DECISION)
+    # --------------------------------------------------
+    def save_final_csv(self, filename="final_energy_arbitrage.csv"):
+        if not hasattr(self, "hourly_data"):
+            print("Hourly data not prepared yet. Run prepare_dataset() first.")
+            return
+
+        df = self.hourly_data.copy()
+
+        # Extract clean date and hour
+        df["date"] = df["valid_time"].dt.date
+        df["hour"] = df["valid_time"].dt.hour
+
+        # Select final columns
+        final_df = df[[
+            "date",
+            "hour",
+            "farm_power_MW",
+            "price_EUR_MWh",
+            "store_decision"
+        ]]
+
+        # Save CSV
+        final_df.to_csv(filename, index=False)
+        print(f"Final CSV saved → {filename}")
+
+        return final_df
 

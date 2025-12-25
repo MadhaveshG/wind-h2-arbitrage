@@ -1,8 +1,14 @@
+"""
+Code: for Polynomial Regression Model to compute wind farm power output
+        and compare with Linear Regression.
+
 # Link to wind turbine data source:
     # https://www.nsenergybusiness.com/projects/reusenkoge-wind-farm-expansion/?cf-view
     
 # Power Curve Data Source:
     # https://en.wind-turbine-models.com/turbines/693-vestas-v112-3.3
+
+"""
 
 import numpy as np
 import pandas as pd
@@ -13,9 +19,10 @@ import plotly.graph_objects as go
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
 class WindFarmModel:
-    """
-    Compute hourly wind farm power using a POWER CURVE instead of physics formula.
-    """
+    
+    # -------------------------------------------------------
+    # Step 1: INITIALIZATION, STORE DATA AND TURBINE INFO
+    # -------------------------------------------------------
 
     def __init__(self, df: pd.DataFrame, 
                 wind_speeds: np.ndarray,
@@ -39,8 +46,10 @@ class WindFarmModel:
         )
 
     # -------------------------------------------------------
-    # COMPUTE HOURLY POWER USING POWER CURVE
+    # Step 2: COMPUTE HOURLY POWER USING POWER CURVE
     # -------------------------------------------------------
+
+    # Hourly Based
     def compute_hourly_power(self):
         """Compute farm power using turbine power curve."""
         
@@ -54,17 +63,16 @@ class WindFarmModel:
         self.df["farm_power_MW"] = self.df["turbine_power_MW"] * self.n_turbines
 
         return self.df
-    
+
+    # -------------------------------------------------------
+    # Step 3: Merge to DAILY and MONTHLY POWER
+    # -------------------------------------------------------
     def aggregate_daily(self):
         self.df["day"] = self.df["valid_time"].dt.date
         daily_power = self.df.groupby("day")["farm_power_MW"].sum().reset_index()
         self.daily_power = daily_power
         return daily_power
-
-
-    # -------------------------------------------------------
-    # MONTHLY AGGREGATION
-    # -------------------------------------------------------
+    
     def aggregate_monthly(self):
         self.df["month"] = self.df["valid_time"].dt.month
         monthly_power = self.df.groupby("month")["farm_power_MW"].sum().reset_index()
@@ -72,8 +80,10 @@ class WindFarmModel:
         return monthly_power
 
     # -------------------------------------------------------
-    # POLYNOMIAL TREND
+    # Step 4: POLYNOMIAL REGRESSION PREDICTION
     # -------------------------------------------------------
+
+    # Hourly Based
     def fit_polynomial_trend(self, degree: int = 3):
         X = self.monthly_power["month"].values.reshape(-1, 1)
         y = self.monthly_power["farm_power_MW"].values
@@ -87,6 +97,7 @@ class WindFarmModel:
         self.y_pred = model.predict(X_poly)
         return self.y_pred
     
+    # Daily Based
     def fit_polynomial_trend_daily(self, degree=3):
         X = np.arange(len(self.daily_power)).reshape(-1, 1)
         y = self.daily_power["farm_power_MW"].values
@@ -101,9 +112,10 @@ class WindFarmModel:
         return self.daily_poly_pred
 
     # ------------------------------------------------------
-    # Linear Regression Prediction
+    # Step 5: Linear Regression Prediction
     # -----------------------------------------------------
 
+    # Hourly Based
     def fit_linear_regression(self):
         """Fit simple linear regression to monthly production."""
         X = self.monthly_power["month"].values.reshape(-1, 1)
@@ -117,6 +129,7 @@ class WindFarmModel:
 
         return self.linear_pred
     
+    # Daily Based
     def fit_linear_regression_daily(self):
         X = np.arange(len(self.daily_power)).reshape(-1, 1)
         y = self.daily_power["farm_power_MW"].values
@@ -129,7 +142,7 @@ class WindFarmModel:
 
     
     # -------------------------------------------------------
-    # EVALUATE MODELS
+    # Step 6:EVALUATE MODELS
     # -------------------------------------------------------
 
     def evaluate_models(self):
@@ -162,9 +175,8 @@ class WindFarmModel:
 
         return results
 
-
     # -------------------------------------------------------
-    # PLOT HOURLY PRODUCTION
+    # Step 7:PLOT HOURLY PRODUCTION
     # -------------------------------------------------------
     def plot_hourly_production_html(self, filename: str):
         time = self.df["valid_time"]
@@ -213,6 +225,10 @@ class WindFarmModel:
         fig.write_html(filename)
         print(f"Interactive plot saved to {filename}")
 
+    # -------------------------------------------------------
+    # Step 8:PLOT DAILY PRODUCTION
+    # -------------------------------------------------------
+    
     # def plot_daily_production(self, filename):
     #     days = self.daily_power["day"]
     #     actual = self.daily_power["farm_power_MW"]

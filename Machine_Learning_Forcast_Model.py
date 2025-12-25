@@ -1,12 +1,14 @@
 """
 Profitability Prediction Using Machine Learning for Onshore Wind Farms
 
+Location: Reusenkoog, Germany
+
 Here, We have used two ML models 
-1. Polynomial Regression
+1. Polynomial Regression and Linear Regression
 2. Logistic Regression
 
 Created on: 24/12/2025
-Created by: M. Eng. Karan Soni, Madhvesh Gorakhiya
+Created by: Karan Soni, Madhvesh Gorakhiya
 Supervisor: Prof. Dr. Andreas Heinen
 
 """
@@ -26,6 +28,7 @@ from ML_model.Logistic_Arbitrage_model import LogisticArbitrageModel
     - Finding Wind Speed at 100m height 
     - Save as CSV file
 
+File Location: DATA/Wind_data_ERA5/Reusenkoge_onshore_wind_data.nc
 """
 # Load the NetCDF file
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))  
@@ -34,7 +37,7 @@ ds = xr.open_dataset(Wind_Data) # Load the NetCDF file using xarray
 
 # Finding the wind speed at 100m height
 ds['wind_speed'] = np.sqrt(ds['u100']**2 + ds['v100']**2)
-ds = ds.mean(dim=['latitude', 'longitude'])  # Average over spatial dimensions
+ds = ds.mean(dim=['latitude', 'longitude'])
 df = ds[['wind_speed']].to_dataframe().reset_index()
 df = df.dropna()
 df['hour'] = df['valid_time'].dt.hour
@@ -47,15 +50,16 @@ df.to_csv(processed_data_path, index=False)
 
 """
 Step 2: Load Market Price Data
-
+File Location: DATA/sport_price_2024.csv
 """
+
 price_df = pd.read_csv(
     os.path.join(BASE_DIR, "DATA", "sport_price_2024.csv"),
     usecols=["Date (GMT+1)", "Price_EUR/MW"]
 )
 
 """
-Step 3: Compute farm power & aggregate monthly
+Step 3: Compute farm power output based on power curve
 """
 
 wind_speeds = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16,17, 18, 19, 20, 21, 22, 23, 24, 25])  # m/s
@@ -69,16 +73,23 @@ wind_farm = WindFarmModel(
     n_turbines=51
 )
 
-wind_farm.compute_hourly_power(),
-wind_farm.aggregate_monthly()
+"""
+Step 4: Compute Hourly, Daily, Monthly Power Output
+"""
+
+wind_farm.compute_hourly_power()
 wind_farm.aggregate_daily()
+wind_farm.aggregate_monthly()
+
 
 """
-Step 3: Fit polynomial regression and linear regression models
+Step 5: Compute polynomial regression and linear regression models
 """
+# Hourly based models
 wind_farm.fit_polynomial_trend(degree=3)
 wind_farm.fit_linear_regression()
 
+## Daily based models
 # wind_farm.fit_polynomial_trend_daily()
 # wind_farm.fit_linear_regression_daily()
 
@@ -86,7 +97,7 @@ results = wind_farm.evaluate_models()
 print(results)
 
 """
-Step 4: Prepare dataset for Logistic Regression Model
+Step 6: Compute Logistic Arbitrage Model
 """
 
 arb_model = LogisticArbitrageModel(
@@ -99,26 +110,36 @@ arb_model.train_model()
 arb_model.print_coefficients()
 
 """
-Step 4: Plot monthly production with trend
+Step 7: Plot Graphs
 """
 
+# Plot 1: Hours Vs Power Plot (Linear and Polynomial Regression)
 wind_farm.plot_hourly_production_html(
     filename=os.path.join(BASE_DIR,"Graphs", "hourly_power_plot.html")
 )
 
+## Daily Vs Power Plot (Linear and Polynomial Regression)
 # wind_farm.plot_daily_production(
 #     filename=os.path.join(BASE_DIR, "Graphs", "daily_power_plot.html")
 # )
 
+# Plot 2: Store Sell Decision Plot
 arb_model.plot_decision_html(
     os.path.join(BASE_DIR, "Graphs", "store_sell_decision.html")
 )
 
-# --------------------------------------------------
-# STEP 6: Save STORE info to CSV
-# --------------------------------------------------
+"""
+Step 8: Save STORE information to CSV
+"""
+
 arb_model.save_store_info(
     hours_file=os.path.join(BASE_DIR, "Graphs", "store_hours.csv"),
     days_file=os.path.join(BASE_DIR, "Graphs", "store_days.csv")
 )
+
+arb_model.save_final_csv(
+    filename=os.path.join(BASE_DIR, "Graphs", 
+                          "final_energy_arbitrage.csv")
+)
+
 
