@@ -132,7 +132,6 @@ class LogisticArbitrageModel:
     # --------------------------------------------------
     # STEP 4: COEFFICIENT INTERPRETATION
     # --------------------------------------------------
-    
     def print_coefficients(self):
         if self.model is None:
             print("Model not trained yet.")
@@ -149,26 +148,81 @@ class LogisticArbitrageModel:
     # STEP 5: INTERACTIVE LINE PLOT OF STORE/SELL
     # --------------------------------------------------
     def plot_decision_html(self, filename):
+        df = self.hourly_data.copy()
+
+        # Color coding for STORE/SELL
+        df["color"] = df["store_decision"].map({1: "green", 0: "red"})
+        df["decision_text"] = df["store_decision"].map({1: "STORE", 0: "SELL"})
+
         fig = go.Figure()
 
+        # ----------------------------------------------------
+        # 1. Improved Electricity Price Curve (smoothed)
+        # ----------------------------------------------------
         fig.add_trace(go.Scatter(
-            # x=self.daily_data["day"],
-            # y=self.daily_data["store_decision"],
-            x=self.hourly_data["valid_time"],
-            y=self.hourly_data["store_decision"],
-
-            mode="lines+markers",
-            line=dict(color="blue", width=2),
-            marker=dict(size=6),
-            name="STORE=1 / SELL=0"
+            x=df["valid_time"],
+            y=df["price_EUR_MWh"].rolling(3, center=True).mean(),  # smooth price
+            mode="lines",
+            line=dict(color="orange", width=2),
+            name="Electricity Price (€/MWh)",
+            yaxis="y2"
         ))
 
+        # ----------------------------------------------------
+        # 2. STORE/SELL Markers
+        # ----------------------------------------------------
+        fig.add_trace(go.Scatter(
+            x=df["valid_time"],
+            y=df["store_decision"],
+            mode="markers",
+            marker=dict(size=7, color=df["color"]),
+            name="STORE (1) / SELL (0)",
+            text=df["decision_text"],
+            hovertemplate="<b>%{text}</b><br>"
+                        "Time: %{x}<br>"
+                        "Price: %{y2} €/MWh<br>"
+                        "<extra></extra>"
+        ))
+
+        # ----------------------------------------------------
+        # 3. Threshold Line (25 €/MWh)
+        # ----------------------------------------------------
+        fig.add_hline(
+            y=25,
+            line=dict(color="black", width=1, dash="dash"),
+            annotation_text="25 €/MWh Threshold",
+            annotation_position="top left",
+            yref="y2"
+        )
+
+        # ----------------------------------------------------
+        # Layout Improvements
+        # ----------------------------------------------------
         fig.update_layout(
-            title="Energy Arbitrage Decisions (STORE vs SELL)",
-            xaxis=dict(title="Day", rangeslider=dict(visible=True)),
-            yaxis=dict(title="Decision", tickvals=[0,1], ticktext=["SELL","STORE"]),
+            title="STORE vs SELL Decisions with Improved Price Curve",
+            xaxis=dict(title="Time", rangeslider=dict(visible=True)),
+            yaxis=dict(
+                title="Decision (0 = SELL, 1 = STORE)",
+                tickvals=[0, 1],
+                ticktext=["SELL", "STORE"]
+            ),
+            yaxis2=dict(
+                title="Electricity Price (€/MWh)",
+                overlaying="y",
+                side="right",
+                showgrid=False
+            ),
+            template="plotly_white",
             hovermode="x unified",
-            template="plotly_white"
+
+            # ⭐ LEGEND ON RIGHT SIDE
+            legend=dict(
+                x=1.05,
+                y=1,
+                xanchor="left",
+                yanchor="top",
+                bgcolor="rgba(255,255,255,0.7)"
+            )
         )
 
         fig.write_html(filename)
