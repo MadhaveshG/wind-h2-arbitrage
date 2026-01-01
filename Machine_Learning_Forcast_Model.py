@@ -11,6 +11,12 @@ Created on: 24/12/2025
 Created by: Karan Soni, Madhvesh Gorakhiya
 Supervisor: Prof. Dr. Andreas Heinen
 
+Research Question:
+    1. Can machine learning models accurately predict wind farm power output and 
+        identify the optimal hours to STORE or SELL energy?
+    2. If low price energy is stored as hydrogen, can the hybrid system 
+        remain economically profitable without subsidies?
+
 """
 
 import pandas as pd
@@ -21,7 +27,7 @@ import xarray as xr
 
 from ML_model.Polynomial_Regration_Model import WindFarmModel
 from ML_model.Logistic_Arbitrage_model import LogisticArbitrageModel
-
+from ML_model.H2_model import generate_interactive_comparison, ComparisonParams
 """
  Step 1: 
     - Load the Wind Data
@@ -142,5 +148,20 @@ arb_model.save_final_csv(
                           "final_energy_arbitrage.csv")
 )
 
+graphs_dir = os.path.join(BASE_DIR, "Graphs")
 
+# If your file name is final_arbitary.csv, set that here; otherwise use final_energy_arbitrage.csv
+final_csv_path = os.path.join(graphs_dir, "final_energy_arbitrage.csv")  # or "final_arbitary.csv"
+
+params = ComparisonParams(
+    h2_price_eur_per_kg=4.0,     # tweak as needed (e.g., 3.5, 5.0)
+    var_om_eur_per_kg=0.20,
+    specific_kwh_per_kg=52.2,
+    electrolyzer_cap_mw=50.0,
+    min_load_fraction=0.10,
+    strict_decision=False,       # set True to obey store_decision strictly (ignore p*)
+    allow_grid_import=False      # keep False for minimal version
+)
+
+generate_interactive_comparison(final_csv_path, graphs_dir, params)
 
