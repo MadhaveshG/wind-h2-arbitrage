@@ -1,0 +1,7 @@
+pandas
+numpy
+matplotlib
+seaborn
+xarray
+netCDF4
+numpy_financial
