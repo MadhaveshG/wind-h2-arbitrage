@@ -154,7 +154,7 @@ graphs_dir = os.path.join(BASE_DIR, "Graphs")
 final_csv_path = os.path.join(graphs_dir, "final_energy_arbitrage.csv")  # or "final_arbitary.csv"
 
 params = ComparisonParams(
-    h2_price_eur_per_kg=4.0,     # tweak as needed (e.g., 3.5, 5.0)
+    h2_price_eur_per_kg=5.0,     
     var_om_eur_per_kg=0.20,
     specific_kwh_per_kg=52.2,
     electrolyzer_cap_mw=50.0,

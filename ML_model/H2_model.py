@@ -13,7 +13,7 @@ except Exception:
 
 @dataclass
 class ComparisonParams:
-    h2_price_eur_per_kg: float = 4.0
+    h2_price_eur_per_kg: float = 5.0
     var_om_eur_per_kg: float = 0.20     # Variable Operation & Maintenance cost per kilogram of hydrogen produced.
     specific_kwh_per_kg: float = 52.2   # The amount of electricity (in kWh) required to produce 1 kg of hydrogen in the electrolyzer
     electrolyzer_cap_mw: float = 50.0   # The maximum power capacity of the electrolyzer in megawatts (MW).
