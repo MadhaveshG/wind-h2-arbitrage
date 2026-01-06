@@ -1,0 +1,207 @@
+\documentclass[aspectratio=169, 10pt]{beamer}
+
+% --- THEME SETTINGS ---
+\usetheme{Madrid} % Clean, professional theme
+\usecolortheme{whale} % Blue/Dark color scheme fitting for energy
+\usefonttheme{professionalfonts}
+
+% --- PACKAGES ---
+\usepackage{graphicx}
+\usepackage{booktabs} % For nicer tables
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{eurosym} % For Euro symbol
+
+% --- METADATA ---
+\title[Hydrogen Arbitrage Optimization]{Optimizing Wind Energy Revenue through Hydrogen Arbitrage}
+\subtitle{A Techno-Economic Analysis of a Hybrid 50MW Electrolyzer System in Germany}
+
+% --- SLIDE CONTENT ---
+\begin{document}
+	
+	% Slide 1: Title
+	\begin{frame}
+		\titlepage
+	\end{frame}
+	
+	% Slide 2: The Problem
+	\begin{frame}{The Challenge: Cannibalization \& Curtailment}
+		\begin{columns}
+			\column{0.6\textwidth}
+			\begin{itemize}
+				\item \textbf{Price Cannibalization:} As renewable penetration rises, market prices drop during high-wind hours.
+				\item \textbf{Grid Congestion:} Northern Germany faces significant grid bottlenecks.
+				\item \textbf{Curtailment:} Wind farms are frequently turned off, wasting potential green energy.
+			\end{itemize}
+			\vspace{0.5cm}
+			\textbf{Research Question:} \\
+			\textit{Can a hybrid Hydrogen system monetize this "lost" energy while remaining profitable without massive subsidies?}
+			
+			\column{0.4\textwidth}
+			\begin{block}{Data Insight}
+				Analysis confirms a divergence between \textbf{Market Average Price} and the realized \textbf{Capture Price} for wind assets [1].
+			\end{block}
+		\end{columns}
+	\end{frame}
+	
+	% Slide 3: System Design
+	\begin{frame}{System Design \& Technical Parameters}
+		\begin{table}[]
+			\centering
+			\begin{tabular}{l l}
+				\toprule
+				\textbf{Parameter} & \textbf{Value / Description} \\
+				\midrule
+				\textbf{Wind Asset} & 210 MW Onshore Capacity \\
+				Location & Reußenköge, Germany (ERA5 Data) [3] \\
+				\midrule
+				\textbf{Electrolyzer} & 50 MW PEM System \\
+				Model & Siemens Energy Silyzer 300 [4] \\
+				Efficiency & 52.2 kWh / kg H$_2$ (Nominal) \\
+				Min. Load & 10\% (5 MW) \\
+				\bottomrule
+			\end{tabular}
+		\end{table}
+		
+		\vspace{0.3cm}
+		\centering
+		\textbf{Configuration:} Co-located system ("Behind-the-Meter") to minimize grid fees.
+	\end{frame}
+	
+	% Slide 4: Methodology
+	\begin{frame}{Methodology: The "Smart Arbitrage" Logic}
+		\textbf{Objective:} Maximize Net Present Value (NPV) via dynamic dispatch.
+		
+		\vspace{0.5cm}
+		\begin{alertblock}{The Switching Threshold}
+			We calculate a dynamic Breakeven Price ($P_{switch}$) to decide operation modes:
+			\[
+			P_{switch} = \frac{1000}{\eta_{el}} \times P_{H2}
+			\]
+			Where $\eta_{el} = 52.2$ kWh/kg and $P_{H2} = \text{\euro}5.00$/kg.
+		\end{alertblock}
+		
+		\vspace{0.5cm}
+		\textbf{The Decision Rule:}
+		\begin{itemize}
+			\item If Grid Price $<$ \textbf{\euro95.79 / MWh} $\rightarrow$ \textbf{\color{green} Produce Hydrogen}
+			\item If Grid Price $>$ \textbf{\euro95.79 / MWh} $\rightarrow$ \textbf{\color{blue} Sell Electricity}
+		\end{itemize}
+	\end{frame}
+	
+	% Slide 5: Data Sources
+	\begin{frame}{Data Sources \& Validation}
+		\begin{itemize}
+			\item \textbf{Electricity Prices:} Day-Ahead Auction prices (DE-LU Zone, 2024) [1].
+			\item \textbf{Wind Resource:} ERA5 Reanalysis data (ECMWF), processed via Xarray [3].
+			\item \textbf{Grid Stress:} Historical Redispatch 2.0 data (TenneT TSO) [2].
+			\item \textbf{Financials:} CAPEX (\euro1,800/kW) and WACC (7\%) aligned with IEA Global Hydrogen Review [6].
+		\end{itemize}
+	\end{frame}
+	
+	% Slide 6: Simulation Results
+	\begin{frame}{Simulation Results: Financial Viability}
+		\begin{columns}
+			\column{0.5\textwidth}
+			\textbf{Revenue Uplift}
+			\begin{itemize}
+				\item Hybrid system generated \textbf{\euro10.96 Million} in \textit{extra} annual revenue vs. baseline.
+				\item Driven by avoiding low/negative price hours.
+			\end{itemize}
+			
+			\vspace{0.3cm}
+			\textbf{Cost Competitiveness}
+			\begin{itemize}
+				\item \textbf{LCOH:} \euro4.87 / kg
+				\item \textbf{Sales Price:} \euro5.00 / kg
+				\item \textbf{Margin:} \euro0.13 / kg
+			\end{itemize}
+			
+			\column{0.5\textwidth}
+			\begin{block}{Final Investment Verdict}
+				\centering
+				\vspace{0.2cm}
+				\Large \textbf{APPROVED} \\
+				\vspace{0.2cm}
+				\normalsize
+				\begin{tabular}{l r}
+					\textbf{NPV:} & \textbf{\euro7.04 Million} \\
+					\textbf{IRR:} & \textbf{8.0\%} \\
+				\end{tabular}
+				\vspace{0.2cm}
+				
+				\textit{\small Project clears the 7\% WACC hurdle.}
+			\end{block}
+		\end{columns}
+	\end{frame}
+	
+	% Slide 7: Visualization
+	\begin{frame}{Revenue Diversification}
+		\centering
+		% REPLACE 'Hybrid_Stacked_vs_Base.png' with your actual filename
+		% Ensure the image is in the same folder as the .tex file
+		\includegraphics[width=0.85\textwidth, height=0.65\textheight, keepaspectratio]{Hybrid_Stacked_vs_Base.png}
+		
+		\vspace{0.2cm}
+		\small \textit{Figure: Monthly revenue comparison showing Hydrogen (Green) as a revenue floor during summer months.}
+	\end{frame}
+	
+	% Slide 8: Sensitivity Analysis
+	\begin{frame}{Sensitivity \& Risk Analysis}
+		\textbf{Critical Risk Factor: Hydrogen Offtake Price}
+		
+		\vspace{0.5cm}
+		\begin{itemize}
+			\item The project operates on a thin margin (\euro0.13/kg).
+			\item A price drop of just \textbf{\euro0.15/kg} (to \euro4.85) turns NPV negative.
+		\end{itemize}
+		
+		\vspace{0.5cm}
+		\textbf{Mitigation Strategy:}
+		\begin{enumerate}
+			\item \textbf{Long-Term PPA:} Securing a fixed-price offtake agreement $ > \text{\euro}5.00$/kg is mandatory for FID.
+			\item \textbf{Grid Services:} Future qualification for Frequency Containment Reserve (FCR) could provide ancillary revenue.
+		\end{enumerate}
+	\end{frame}
+	
+	% Slide 9: Conclusion
+	\begin{frame}{Conclusion}
+		\begin{enumerate}
+			\item \textbf{Feasibility Confirmed:} A 50MW Electrolyzer co-located with 210MW wind is economically viable in Germany (8.0\% IRR).
+			\item \textbf{Value of Flexibility:} The dynamic switching logic (curtailing H$_2$ when power $>$ \euro96/MWh) is critical to profitability.
+			\item \textbf{Grid Impact:} The system acts as a flexible load, reducing physical curtailment and aiding grid stability.
+		\end{enumerate}
+		
+		\vspace{1cm}
+		\centering
+		\large \textbf{Thank You! Questions?}
+	\end{frame}
+	
+	% Slide 10: References
+	\begin{frame}[allowframebreaks]{References}
+		\tiny
+		\setbeamertemplate{bibliography item}[text]
+		\begin{thebibliography}{9}
+			
+			\bibitem{energycharts}
+			Fraunhofer ISE. (2024). \textit{Energy-Charts: Public Net Electricity Generation in Germany}.
+			
+			\bibitem{tennet}
+			TenneT TSO. (2024). \textit{Redispatch 2.0 Data Downloads}.
+			
+			\bibitem{era5}
+			ECMWF. (2024). \textit{ERA5 Reanalysis Data}. Copernicus Climate Change Service.
+			
+			\bibitem{siemens}
+			Siemens Energy. (2023). \textit{Silyzer 300 PEM Electrolyzer Datasheet}.
+			
+			\bibitem{eex}
+			EEX. (2024). \textit{HYDRIX - European Green Hydrogen Index}.
+			
+			\bibitem{iea}
+			IEA. (2024). \textit{Global Hydrogen Review 2024}. International Energy Agency, Paris.
+			
+		\end{thebibliography}
+	\end{frame}
+	
+\end{document}
