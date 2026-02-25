@@ -1,9 +1,5 @@
 # Techno-Economic Optimization of a Hybrid Wind-Hydrogen System
 
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Completed-success)](#)
-
 ##  Overview
 This repository contains the code, data analysis, and financial modeling for the techno-economic optimization of a hybrid wind-hydrogen system. Based on a case study of the Bürgerwindpark Reußenköge in Northern Germany, this project provides a data-driven solution to two of the most pressing challenges in the renewable energy sector:
 1. **Grid Congestion (Curtailment):** The physical inability of the grid to transport all generated wind power, leading to *Einspeisemanagement* (forced shutdowns).
