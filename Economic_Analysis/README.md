@@ -1,0 +1,38 @@
+# Techno-Economic Optimization of a Hybrid Wind-Hydrogen System
+
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Completed-success)](#)
+
+##  Overview
+This repository contains the code, data analysis, and financial modeling for the techno-economic optimization of a hybrid wind-hydrogen system. Based on a case study of the Bürgerwindpark Reußenköge in Northern Germany, this project provides a data-driven solution to two of the most pressing challenges in the renewable energy sector:
+1. **Grid Congestion (Curtailment):** The physical inability of the grid to transport all generated wind power, leading to *Einspeisemanagement* (forced shutdowns).
+2. **Price Cannibalization:** The economic deflation of wind energy value, where high regional wind generation drives Day-Ahead market prices to zero or negative values.
+
+By integrating a **50 MW Proton Exchange Membrane (PEM) electrolyzer** with a **170 MW wind farm**, this project demonstrates how sector-coupling can serve as a "congestion valve" and a financial hedge.
+
+##  System Architecture
+* **Wind Asset:** 170 MW total capacity, modeled using the Vestas V112-3.45 MW turbine power curve to accurately capture partial-load aerodynamics.
+* **Hydrogen Asset:** 50 MW PEM electrolyzer, modeled after the Siemens Silyzer 300, chosen for its rapid load ramping capabilities (10% to 100% in under one minute).
+* **Simulation Resolution:** Hourly "digital twin" simulation spanning the calendar year 2024 (8,760 hours).
+
+##  Data Sources
+The simulation relies on high-fidelity, real-world data:
+* **Meteorological Data:** Wind speed vectors from the ECMWF ERA5 reanalysis dataset, evaluated at a 100m hub height.
+* **Market Data:** 2024 Day-Ahead spot prices for the Germany-Luxembourg (DE-LU) bidding zone via the ENTSO-E Transparency Platform.
+* **Grid Constraints:** "Current-Induced Load Decrease" redispatch logs from TenneT TSO, used to build a localized curtailment profile.
+
+##  Smart Dispatch Algorithm
+The core of this project is a Python-based dispatch algorithm that optimizes the system's operation using a hierarchical decision tree:
+1. **Grid Compliance:** If the grid is congested, mandated curtailed power is immediately diverted to the electrolyzer (marginal cost of zero).
+2. **Price Arbitrage:** The algorithm calculates a dynamic breakeven threshold (approx. €95.79/MWh) based on a target hydrogen sale price of €5.00/kg and a system efficiency of 52.2 kWh/kg.
+    * **IF** Spot Price < €95.79 ➔ Produce Hydrogen.
+    * **IF** Spot Price > €95.79 ➔ Sell Electricity to Grid.
+
+##  Key Results
+The integration of the electrolyzer yields a highly competitive and bankable financial profile:
+* **Grid Service:** Successfully recovered 35.7 GWh of energy that would have been lost to grid curtailment (approx. 4.88% of total potential).
+* **Revenue Uplift:** Generated an additional **€10.96 Million** compared to a standalone wind farm baseline.
+* **Financial Viability:** * **Levelized Cost of Hydrogen (LCOH):** €4.90/kg.
+  * **Net Present Value (NPV):** €7.04 Million.
+  * **Internal Rate of Return (IRR):** 8.0%, successfully clearing the standard 7% WACC hurdle.
